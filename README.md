@@ -1,57 +1,34 @@
-# Hands-On Lab: Red Hat Streams for Apache Kafka บน OpenShift
+# Hands-On Lab: Red Hat Streams for Apache Kafka on OpenShift
 
-> Lab นี้สอนตั้งแต่ติดตั้ง Operator, deploy Kafka cluster (KRaft mode), สร้าง Topic/User, ไปจนถึง produce/consume message จริงบน OpenShift
+> This lab walks through installing the Operator, deploying a Kafka cluster (KRaft mode), creating Topics/Users, producing/consuming real messages on OpenShift ad many other features.
 
 ---
 
-## 📋 สารบัญ
+## 📋 Table of Contents
 
-- [Prerequisites](#-prerequisites)
-- [Part 1: ติดตั้ง Streams for Apache Kafka Operator](#-part-1-ติดตั้ง-streams-for-apache-kafka-operator)
-- [Part 2: Deploy Kafka Cluster](#-part-2-deploy-kafka-cluster)
-- [Part 3: ตรวจสอบสถานะ Cluster](#-part-3-ตรวจสอบสถานะ-cluster)
-- [Part 4: สร้าง Topic](#-part-4-สร้าง-topic)
-- [Part 5: สร้าง User และ Authentication](#-part-5-สร้าง-user-และ-authentication)
-- [Part 6: Produce และ Consume Message](#-part-6-produce-และ-consume-message)
-- [Part 7: Expose Kafka ผ่าน External Route (Bonus)](#-part-7-expose-kafka-ผ่าน-external-route-bonus)
+- [Prerequisites](docs/1-prereq.md)
+- [Part 1: Install the Streams for Apache Kafka Operator](#-part-1-install-the-streams-for-apache-kafka-operator)
+- [Part 2: Deploy a Kafka Cluster](#-part-2-deploy-a-kafka-cluster)
+- [Part 3: Verify Cluster Status](#-part-3-verify-cluster-status)
+- [Part 4: Create a Topic](#-part-4-create-a-topic)
+- [Part 5: Create a User and Authentication](#-part-5-create-a-user-and-authentication)
+- [Part 6: Produce and Consume Messages](#-part-6-produce-and-consume-messages)
+- [Part 7: Expose Kafka via External Route (Bonus)](#-part-7-expose-kafka-via-external-route-bonus)
 - [Part 8: Cleanup](#-part-8-cleanup)
 - [Troubleshooting](#-troubleshooting)
 - [Reference](#-reference)
 
 ---
 
-## ✅ Prerequisites
+## 🚀 Part 1: Install the Streams for Apache Kafka Operator
 
-ก่อนเริ่ม lab ต้องมีสิ่งเหล่านี้:
-
-- [ ] OpenShift cluster (4.14+) พร้อม `cluster-admin` หรือสิทธิ์ติดตั้ง Operator
-- [ ] `oc` CLI ติดตั้งแล้วและ login เข้า cluster
-- [ ] Storage class ที่รองรับ `ReadWriteOnce` (สำหรับ persistent storage ของ Kafka)
-
-ตรวจสอบว่าพร้อมก่อนเริ่ม:
-
-```bash
-# ตรวจสอบว่า login แล้ว
-oc whoami
-
-# ตรวจสอบ storage class ที่มี
-oc get storageclass
-
-# ตรวจสอบสิทธิ์ติดตั้ง operator
-oc auth can-i create subscriptions -n openshift-operators
-```
-
----
-
-## 🚀 Part 1: ติดตั้ง Streams for Apache Kafka Operator
-
-### Step 1.1 — สร้าง Namespace
+### Step 1.1 — Create a Namespace
 
 ```bash
 oc new-project kafka
 ```
 
-### Step 1.2 — ติดตั้ง Operator ผ่าน OLM
+### Step 1.2 — Install the Operator via OLM
 
 ```yaml
 # 01-operator-subscription.yaml
@@ -72,38 +49,38 @@ spec:
 oc apply -f 01-operator-subscription.yaml
 ```
 
-### Step 1.3 — รอ Operator พร้อมใช้งาน
+### Step 1.3 — Wait for the Operator to Become Ready
 
 ```bash
-# รอจน Operator pod status = Running
+# Wait until the operator pod status = Running
 oc get pods -n kafka -w
 
-# กด Ctrl+C เมื่อเห็น output แบบนี้:
+# Press Ctrl+C once you see output like this:
 # NAME                                        READY   STATUS    RESTARTS   AGE
 # amq-streams-cluster-operator-xxxxxxxxx-xxxxx  1/1     Running   0          2m
 ```
 
-ตรวจสอบว่า CRD ถูกติดตั้งครบ:
+Verify the CRDs were installed correctly:
 
 ```bash
 oc get crd | grep kafka
 
-# ควรเห็น CRD เหล่านี้เป็นอย่างน้อย:
+# You should see at least these CRDs:
 # kafkas.kafka.strimzi.io
 # kafkatopics.kafka.strimzi.io
 # kafkausers.kafka.strimzi.io
 # kafkanodepools.kafka.strimzi.io
 ```
 
-> ✅ **Checkpoint:** ถ้าเห็น operator pod เป็น `Running` และ CRD ครบ แปลว่า Part 1 เสร็จสมบูรณ์
+> ✅ **Checkpoint:** If the operator pod is `Running` and all CRDs are present, Part 1 is complete.
 
 ---
 
-## 🏗️ Part 2: Deploy Kafka Cluster
+## 🏗️ Part 2: Deploy a Kafka Cluster
 
-Lab นี้ใช้ **KRaft mode** (ไม่ใช้ ZooKeeper) ซึ่งเป็นแนวทางมาตรฐานปัจจุบัน
+This lab uses **KRaft mode** (no ZooKeeper), which is the current standard approach.
 
-### Step 2.1 — สร้าง KafkaNodePool สำหรับ Controller
+### Step 2.1 — Create a KafkaNodePool for the Controller
 
 ```yaml
 # 02-nodepool-controller.yaml
@@ -134,7 +111,7 @@ spec:
       memory: "2Gi"
 ```
 
-### Step 2.2 — สร้าง KafkaNodePool สำหรับ Broker
+### Step 2.2 — Create a KafkaNodePool for the Broker
 
 ```yaml
 # 03-nodepool-broker.yaml
@@ -165,7 +142,7 @@ spec:
       memory: "2Gi"
 ```
 
-### Step 2.3 — สร้าง Kafka Cluster
+### Step 2.3 — Create the Kafka Cluster
 
 ```yaml
 # 04-kafka-cluster.yaml
@@ -203,7 +180,7 @@ spec:
     userOperator: {}
 ```
 
-### Step 2.4 — Apply ทั้งหมด
+### Step 2.4 — Apply Everything
 
 ```bash
 oc apply -f 02-nodepool-controller.yaml
@@ -211,7 +188,7 @@ oc apply -f 03-nodepool-broker.yaml
 oc apply -f 04-kafka-cluster.yaml
 ```
 
-การ deploy เต็มรูปแบบใช้เวลาประมาณ 2-5 นาที ให้รอด้วยคำสั่งนี้:
+Full deployment takes roughly 2-5 minutes. Wait for it with:
 
 ```bash
 oc wait kafka/my-cluster \
@@ -222,13 +199,13 @@ oc wait kafka/my-cluster \
 
 ---
 
-## 🔍 Part 3: ตรวจสอบสถานะ Cluster
+## 🔍 Part 3: Verify Cluster Status
 
 ```bash
-# ดู Pod ทั้งหมด
+# List all pods
 oc get pods -n kafka
 
-# ควรเห็น:
+# You should see:
 # NAME                          READY   STATUS    RESTARTS   AGE
 # my-cluster-broker-0           1/1     Running   0          3m
 # my-cluster-broker-1           1/1     Running   0          3m
@@ -240,26 +217,26 @@ oc get pods -n kafka
 ```
 
 ```bash
-# ดู Kafka CR status
+# Check the Kafka CR status
 oc get kafka my-cluster -n kafka
 
-# ดู detail conditions
+# View detailed conditions
 oc describe kafka my-cluster -n kafka
 ```
 
 ```bash
-# ดู Service ที่ Operator สร้างให้
+# View the Services the Operator created
 oc get svc -n kafka
 
-# ควรเห็น bootstrap service สำหรับ client เชื่อมต่อ
+# You should see the bootstrap service clients connect to:
 # my-cluster-kafka-bootstrap   ClusterIP   ...   9092/TCP,9093/TCP
 ```
 
-> ✅ **Checkpoint:** Kafka CR status ต้องเป็น `Ready: True` ก่อนไป Part ถัดไป
+> ✅ **Checkpoint:** The Kafka CR status must show `Ready: True` before moving to the next part.
 
 ---
 
-## 📨 Part 4: สร้าง Topic
+## 📨 Part 4: Create a Topic
 
 ```yaml
 # 05-topic.yaml
@@ -274,7 +251,7 @@ spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 604800000        # 7 วัน
+    retention.ms: 604800000        # 7 days
     segment.bytes: 1073741824      # 1 GB
     min.insync.replicas: 2
 ```
@@ -282,16 +259,16 @@ spec:
 ```bash
 oc apply -f 05-topic.yaml
 
-# ตรวจสอบ
+# Verify
 oc get kafkatopic -n kafka
 oc describe kafkatopic my-topic -n kafka
 ```
 
 ---
 
-## 🔐 Part 5: สร้าง User และ Authentication
+## 🔐 Part 5: Create a User and Authentication
 
-### Step 5.1 — สร้าง KafkaUser พร้อม SCRAM-SHA-512 Authentication
+### Step 5.1 — Create a KafkaUser with SCRAM-SHA-512 Authentication
 
 ```yaml
 # 06-user.yaml
@@ -324,17 +301,17 @@ spec:
           - Read
 ```
 
-> ⚠️ **หมายเหตุ:** Authorization type `simple` ต้องเปิด `authorization: type: simple` ใน Kafka CR ด้วย (`spec.kafka.authorization`) ถ้าต้องการบังคับ ACL จริง — lab นี้เน้นสอน syntax การสร้าง user ก่อน
+> ⚠️ **Note:** The `simple` authorization type also requires `authorization: type: simple` to be enabled on the Kafka CR itself (`spec.kafka.authorization`) for ACLs to actually be enforced — this lab focuses on teaching the user-creation syntax first.
 
 ```bash
 oc apply -f 06-user.yaml
 
-# ตรวจสอบว่า User Operator สร้าง Secret ให้อัตโนมัติ
+# Verify the User Operator automatically created a Secret
 oc get kafkauser my-user -n kafka
 oc get secret my-user -n kafka
 ```
 
-### Step 5.2 — ดู Password ที่ Generate ให้
+### Step 5.2 — View the Generated Password
 
 ```bash
 oc get secret my-user -n kafka \
@@ -343,9 +320,9 @@ oc get secret my-user -n kafka \
 
 ---
 
-## 💬 Part 6: Produce และ Consume Message
+## 💬 Part 6: Produce and Consume Messages
 
-### Step 6.1 — Deploy Client Pod สำหรับทดสอบ
+### Step 6.1 — Deploy a Test Client Pod
 
 ```bash
 oc run kafka-client \
@@ -355,13 +332,13 @@ oc run kafka-client \
   -- sleep infinity
 ```
 
-รอให้ pod พร้อม:
+Wait for the pod to become ready:
 
 ```bash
 oc wait pod/kafka-client --for=condition=Ready -n kafka --timeout=60s
 ```
 
-### Step 6.2 — Produce Message (Plain listener, ไม่มี auth)
+### Step 6.2 — Produce a Message (plain listener, no auth)
 
 ```bash
 oc exec -it kafka-client -n kafka -- \
@@ -370,17 +347,17 @@ oc exec -it kafka-client -n kafka -- \
   --topic my-topic
 ```
 
-พิมพ์ข้อความทดสอบ แล้วกด Enter (กด Ctrl+D เพื่อออก):
+Type a few test messages and press Enter after each (press Ctrl+D to exit):
 
 ```
-สวัสดี Kafka!
-ข้อความทดสอบที่ 2
-ข้อความทดสอบที่ 3
+Hello Kafka!
+Test message 2
+Test message 3
 ```
 
-### Step 6.3 — Consume Message
+### Step 6.3 — Consume the Messages
 
-เปิด terminal ใหม่:
+Open a new terminal:
 
 ```bash
 oc exec -it kafka-client -n kafka -- \
@@ -390,11 +367,11 @@ oc exec -it kafka-client -n kafka -- \
   --from-beginning
 ```
 
-ควรเห็นข้อความที่ produce ไว้ก่อนหน้าปรากฏขึ้นมา
+You should see the messages you produced earlier appear.
 
-> ✅ **Checkpoint:** ถ้า consume เห็นข้อความที่ produce ไว้ครบ แปลว่า cluster ทำงานถูกต้องสมบูรณ์แบบ end-to-end
+> ✅ **Checkpoint:** If you can consume all the messages you produced, the cluster is working correctly end-to-end.
 
-### Step 6.4 — ตรวจสอบ Topic Detail
+### Step 6.4 — Inspect Topic Details
 
 ```bash
 oc exec -it kafka-client -n kafka -- \
@@ -404,7 +381,7 @@ oc exec -it kafka-client -n kafka -- \
   --topic my-topic
 ```
 
-### Step 6.5 — ตรวจสอบ Consumer Group
+### Step 6.5 — Inspect the Consumer Group
 
 ```bash
 oc exec -it kafka-client -n kafka -- \
@@ -416,18 +393,18 @@ oc exec -it kafka-client -n kafka -- \
   bin/kafka-consumer-groups.sh \
   --bootstrap-server my-cluster-kafka-bootstrap:9092 \
   --describe \
-  --group console-consumer-xxxxx   # แทนด้วยชื่อ group ที่เห็นจาก --list
+  --group console-consumer-xxxxx   # replace with the group name from --list
 ```
 
 ---
 
-## 🌐 Part 7: Expose Kafka ผ่าน External Route (Bonus)
+## 🌐 Part 7: Expose Kafka via External Route (Bonus)
 
-ถ้าต้องการให้ client จากนอก OpenShift cluster เชื่อมต่อได้:
+If you need clients outside the OpenShift cluster to connect:
 
 ```yaml
 # 07-kafka-external-listener.yaml
-# เพิ่ม listener นี้เข้าไปใน spec.kafka.listeners ของ Kafka CR เดิม
+# Add this listener into spec.kafka.listeners on the existing Kafka CR
 - name: external
   port: 9094
   type: route
@@ -437,10 +414,10 @@ oc exec -it kafka-client -n kafka -- \
 ```
 
 ```bash
-# แก้ Kafka CR แล้ว apply ใหม่
+# Edit the Kafka CR and apply
 oc edit kafka my-cluster -n kafka
 
-# ดู Route ที่ Operator สร้างให้ (1 route ต่อ broker)
+# View the Routes the Operator created (one route per broker)
 oc get routes -n kafka
 ```
 
@@ -449,17 +426,17 @@ oc get routes -n kafka
 ## 🧹 Part 8: Cleanup
 
 ```bash
-# ลบ resource ทั้งหมดใน namespace kafka
+# Delete all resources in the kafka namespace
 oc delete kafkatopic --all -n kafka
 oc delete kafkauser --all -n kafka
 oc delete kafka --all -n kafka
 oc delete kafkanodepool --all -n kafka
 oc delete pod kafka-client -n kafka
 
-# ลบ operator subscription (ถ้าต้องการถอนถอน operator ด้วย)
+# Remove the operator subscription too, if you want to uninstall the operator
 oc delete subscription amq-streams -n kafka
 
-# ลบ namespace ทั้งหมด (ลบทุกอย่างในคราวเดียว)
+# Or delete the entire namespace to remove everything at once
 oc delete project kafka
 ```
 
@@ -467,24 +444,24 @@ oc delete project kafka
 
 ## 🛠️ Troubleshooting
 
-| อาการ | สาเหตุที่เป็นไปได้ | วิธีแก้ |
+| Symptom | Possible Cause | Fix |
 |---|---|---|
-| Operator pod ไม่ start | Subscription channel ผิด หรือ catalog source ไม่พร้อม | `oc get subscription -n kafka -o yaml` ดู status conditions |
-| Kafka pod ค้าง `Pending` | Storage class ไม่รองรับ หรือ resource ไม่พอ | `oc describe pod <pod-name> -n kafka` ดู Events |
-| Kafka CR ไม่ `Ready` | Broker ยัง sync ไม่เสร็จ หรือ config ผิด | `oc describe kafka my-cluster -n kafka` ดู conditions |
-| `kafka-console-producer` ต่อไม่ได้ | Bootstrap server address ผิด หรือ listener config ไม่ตรง | `oc get svc -n kafka` เช็คชื่อ service ให้ตรง |
-| Topic สร้างไม่สำเร็จ | `strimzi.io/cluster` label ไม่ตรงกับชื่อ Kafka cluster | ตรวจสอบ label ให้ตรงกับ `metadata.name` ของ Kafka CR |
+| Operator pod won't start | Wrong subscription channel, or catalog source not ready | `oc get subscription -n kafka -o yaml` and check status conditions |
+| Kafka pod stuck `Pending` | Storage class not supported, or insufficient resources | `oc describe pod <pod-name> -n kafka` and check Events |
+| Kafka CR never `Ready` | Broker still syncing, or misconfiguration | `oc describe kafka my-cluster -n kafka` and check conditions |
+| `kafka-console-producer` can't connect | Wrong bootstrap server address, or listener config mismatch | `oc get svc -n kafka` and confirm the service name |
+| Topic creation fails | `strimzi.io/cluster` label doesn't match the Kafka cluster name | Verify the label matches the Kafka CR's `metadata.name` |
 
-### คำสั่ง Debug ที่มีประโยชน์
+### Useful Debug Commands
 
 ```bash
-# ดู log ของ Cluster Operator
+# View Cluster Operator logs
 oc logs -f deployment/amq-streams-cluster-operator -n kafka
 
-# ดู log ของ broker เฉพาะตัว
+# View a specific broker's logs
 oc logs -f my-cluster-broker-0 -n kafka
 
-# ดู event ทั้งหมดใน namespace
+# View all events in the namespace
 oc get events -n kafka --sort-by='.lastTimestamp'
 ```
 
@@ -498,16 +475,16 @@ oc get events -n kafka --sort-by='.lastTimestamp'
 
 ---
 
-## 🎯 สิ่งที่เรียนรู้จาก Lab นี้
+## 🎯 What You Learned in This Lab
 
-- [x] ติดตั้ง Streams for Apache Kafka Operator ผ่าน OLM
-- [x] Deploy Kafka Cluster แบบ KRaft mode (ไม่ใช้ ZooKeeper)
-- [x] แยก Controller และ Broker ผ่าน KafkaNodePool
-- [x] สร้างและจัดการ Topic ผ่าน KafkaTopic CR
-- [x] สร้าง User พร้อม Authentication และ ACL ผ่าน KafkaUser CR
-- [x] Produce/Consume message ผ่าน CLI client pod
-- [x] Expose Kafka ออกนอก cluster ผ่าน Route
+- [x] Installed the Streams for Apache Kafka Operator via OLM
+- [x] Deployed a Kafka Cluster in KRaft mode (no ZooKeeper)
+- [x] Separated Controller and Broker roles using KafkaNodePool
+- [x] Created and managed a Topic via the KafkaTopic CR
+- [x] Created a User with authentication and ACLs via the KafkaUser CR
+- [x] Produced and consumed messages via a CLI client pod
+- [x] Exposed Kafka outside the cluster via a Route
 
 ---
 
-*Lab นี้ทดสอบบน OpenShift 4.16+ และ Streams for Apache Kafka (channel `stable`) — เวอร์ชันของ operator/Kafka อาจเปลี่ยนตามเวลา ควรตรวจสอบ [compatibility matrix](https://access.redhat.com/articles/streams-supported-configurations) ก่อนใช้งานจริง*
+*This lab was tested on OpenShift 4.16+ with Streams for Apache Kafka (`stable` channel) — operator/Kafka versions may change over time. Check the [compatibility matrix](https://access.redhat.com/articles/streams-supported-configurations) before using this in production.*
