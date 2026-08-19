@@ -7,7 +7,7 @@
 ## 📋 Table of Contents
 
 - [Prerequisites](docs/1-prereq.md)
-- [Part 1: Install the Streams for Apache Kafka Operator](#-part-1-install-the-streams-for-apache-kafka-operator)
+- [Red Hat Streams for Apache Kafka Quickstart](docs/2-quickstart.md)
 - [Part 2: Deploy a Kafka Cluster](#-part-2-deploy-a-kafka-cluster)
 - [Part 3: Verify Cluster Status](#-part-3-verify-cluster-status)
 - [Part 4: Create a Topic](#-part-4-create-a-topic)
