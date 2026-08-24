@@ -1,0 +1,64 @@
+---
+# The Deployment for the operator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kroxylicious-operator
+  namespace: kroxylicious-operator
+  labels:
+    app.kubernetes.io/name: kroxylicious
+    app.kubernetes.io/component: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kroxylicious
+  template:
+    metadata:
+      labels:
+        app: kroxylicious
+        com.company: Red_Hat
+        rht.prod_name: Red_Hat_Application_Foundations
+        rht.prod_ver: 2026.Q2
+        rht.comp: AMQ_Streams
+        rht.comp_ver: '3.2'
+        rht.subcomp: proxy-operator
+        rht.subcomp_t: infrastructure
+    spec:
+      serviceAccountName: kroxylicious-operator
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: operator
+          image: registry.redhat.io/amq-streams/proxy-operator-rhel9:3.2.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: KROXYLICIOUS_IMAGE
+              value: registry.redhat.io/amq-streams/proxy-rhel9:3.2.1
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          terminationMessagePolicy: FallbackToLogsOnError
+          args: [ ]
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "1"
+            limits:
+              memory: 512Mi
+              cpu: "1"
+          ports:
+            - containerPort: 8080
+              name: http
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+            httpGet:
+              port: http
+              path: /livez

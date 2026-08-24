@@ -10,6 +10,7 @@
   - [Download Red Hat Streams for Apache Kafka](#download-red-hat-streams-for-apache-kafka)
   - [Install Red Hat Streams for Apache Kafka operator from the OperatorHub](#install-red-hat-streams-for-apache-kafka-operator-from-the-operatorhub)
   - [Install Web Terminal from the OperatorHub](#install-web-terminal-from-the-operatorhub)
+  - [Enable User Workload Monitoring](#enable-user-workload-monitoring)
   - [Back to Table of Content](#back-to-table-of-content)
 
 ---
@@ -113,6 +114,10 @@ oc auth can-i create subscriptions -n openshift-operators
 - Check web terminal icon show at top right of OpenShift Console (or refresh page again)
 
   ![](../images/02/02-27.png) 
+
+---
+
+## Enable User Workload Monitoring
 
 ---
 

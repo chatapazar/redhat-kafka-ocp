@@ -1,0 +1,25 @@
+#
+# Copyright Kroxylicious Authors.
+#
+# Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
+#
+
+---
+kind: KafkaProxyIngress
+apiVersion: kroxylicious.io/v1alpha1
+metadata:
+  name: my-ingress
+  namespace: my-proxy
+spec:
+  proxyRef:
+    name: my-proxy
+  loadBalancer:
+    # These are the FQDNs that your client will use to connect to the proxy.
+    # You may change these names to suit the needs of your environment, but the $(nodeId) pattern 
+    # within the `advertisedBrokerAddressPattern` must be retained.  The use of $(virtualClusterName)
+    # is optional. If present it will be substituted for the virtial cluster's name.
+    #
+    # It is your responsibilty to configure your off-cluster DNS so that these names resolve to the load balancer's
+    # external address
+    bootstrapAddress: $(virtualClusterName).mykafkaproxy.mycompany.com
+    advertisedBrokerAddressPattern: broker$(nodeId).$(virtualClusterName).mykafkaproxy.mycompany.com

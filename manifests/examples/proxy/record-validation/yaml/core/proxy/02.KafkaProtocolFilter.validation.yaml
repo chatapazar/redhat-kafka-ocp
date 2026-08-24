@@ -1,0 +1,22 @@
+#
+# Copyright Kroxylicious Authors.
+#
+# Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
+#
+
+---
+kind: KafkaProtocolFilter
+apiVersion: kroxylicious.io/v1alpha1
+metadata:
+  name: validation
+  namespace: my-proxy
+spec:
+  type: RecordValidation
+  configTemplate:
+    rules:
+      - topicNames:
+          - people
+        valueRule:
+          schemaValidationConfig:
+            apicurioId: 1
+            apicurioRegistryUrl: http://registry-service.schema-registry.svc.cluster.local:8080
