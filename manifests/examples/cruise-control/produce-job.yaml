@@ -1,0 +1,32 @@
+ # load-1m-records-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-1m-records
+  namespace: kafka-scale
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: producer
+          image: registry.redhat.io/amq-streams/kafka-42-rhel9:3.2.0
+          command:
+            - /bin/bash
+            - -c
+            - |
+              bin/kafka-producer-perf-test.sh \
+                --topic my-topic \
+                --num-records 5000000 \
+                --record-size 2048 \
+                --throughput -1 \
+                --producer-props \
+                  bootstrap.servers=my-cluster-kafka-bootstrap:9092
+          resources:
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"

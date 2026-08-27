@@ -1,0 +1,15 @@
+apiVersion: registry.apicur.io/v1
+kind: ApicurioRegistry3
+metadata:
+  name: my-registry
+spec:
+  app:
+    storage:
+      type: kafkasql
+      kafkasql:
+        bootstrapServers: "my-cluster-kafka-bootstrap.kafka-registry.svc:9092"
+    ingress:
+      host: apicurio-registry.apps.ocp.v6kjz.sandbox2461.opentlc.com
+  ui:
+    ingress:
+      host: apicurio-registry-ui.apps.ocp.v6kjz.sandbox2461.opentlc.com

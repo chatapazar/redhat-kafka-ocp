@@ -13,10 +13,9 @@ spec:
     offsetStorageTopic: my-mirror-maker-2-offset
     statusStorageTopic: my-mirror-maker-2-status
     config:
-      # -1 means it will use the default replication factor configured in the broker
-      config.storage.replication.factor: -1
-      offset.storage.replication.factor: -1
-      status.storage.replication.factor: -1
+      config.storage.replication.factor: 1
+      offset.storage.replication.factor: 1
+      status.storage.replication.factor: 1
   mirrors:
   - source:
       bootstrapServers: cluster-a-kafka-bootstrap:9092
@@ -24,19 +23,15 @@ spec:
     sourceConnector:
       tasksMax: 1
       config:
-        # -1 means it will use the default replication factor configured in the broker
-        replication.factor: -1
-        offset-syncs.topic.replication.factor: -1
+        replication.factor: 1
+        offset-syncs.topic.replication.factor: 1
         sync.topic.acls.enabled: "false"
         refresh.topics.interval.seconds: 600
-        offset.lag.max: 100
     checkpointConnector:
       tasksMax: 1
       config:
-        checkpoints.topic.replication.factor: -1
+        checkpoints.topic.replication.factor: 1
         sync.group.offsets.enabled: "true"
-        emit.checkpoints.interval.seconds: 60
-        sync.group.offsets.interval.seconds: 60
         refresh.groups.interval.seconds: 600
     topicsPattern: ".*"
     groupsPattern: ".*"

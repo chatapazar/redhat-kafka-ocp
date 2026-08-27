@@ -7,4 +7,9 @@ metadata:
 # no goals specified, using the default goals from the Cruise Control configuration
 spec:
   mode: add-brokers
-  brokers: [3, 4]
+  brokers: [6]
+  skipHardGoalCheck: true 
+  goals:
+    - ReplicaDistributionGoal
+    - DiskUsageDistributionGoal
+    - TopicReplicaDistributionGoal

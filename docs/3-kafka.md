@@ -9,6 +9,8 @@
   - [Kafka Example](#kafka-example)
   - [Prevent accidental data loss](#prevent-accidental-data-loss)
   - [Repeat Kafka Cluster](#repeat-kafka-cluster)
+  - [Setting up client access to a Kafka cluster](#setting-up-client-access-to-a-kafka-cluster)
+  - [](#)
   - [Back to Table of Content](#back-to-table-of-content)
 
 ---
@@ -41,6 +43,13 @@ The examples in this module demonstrate how you can use Kraft (ZooKeeper-less Ap
   ![](../images/03/03-5.png)
 
 - Review Topology, Pods, Services, PV, PVC
+- For more detail about kafka configuration see **[Configuring Kafka](https://docs.redhat.com/en/documentation/red_hat_streams_for_apache_kafka/3.2/html/deploying_and_managing_streams_for_apache_kafka_on_openshift/overview-str#con-config-kafka-kraft-str)**
+- For more detail about kafka nodepool see **[Configuring Node Pools](https://docs.redhat.com/en/documentation/red_hat_streams_for_apache_kafka/3.2/html/deploying_and_managing_streams_for_apache_kafka_on_openshift/overview-str#config-node-pools-str)**
+
+- Example Kafa Cluster Topology on OpenShift
+  
+  ![](../images/03/03-7.png)
+
 - Search `strimzipodset` in search menu
   
   ![](../images/03/03-6.png)
@@ -79,6 +88,8 @@ To make Strimzi delete PVCs automatically whenever you delete the cluster, set `
 
   ```
 
+- For More detail of kafka storage see **[Configuring Kafka Storage](https://docs.redhat.com/en/documentation/red_hat_streams_for_apache_kafka/3.2/html/deploying_and_managing_streams_for_apache_kafka_on_openshift/overview-str#assembly-storage-str)**
+
 - **Clean Up Existing Orphaned Storage**
 If you already deleted the `Kafka` CR without `deleteClaim: true`, clean up the storage manually:
 
@@ -106,6 +117,33 @@ Deleting the PVC may leave the Persistent Volume (PV) stuck in a `Released` stat
 
 - repeat again with The [`kafka-with-dual-role-nodes.yaml`](../manifests/examples/kafka/kafka-with-dual-role-nodes.yaml) and The [`kafka-jbod.yaml`](../manifests/examples/kafka/kafka-jbod.yaml) .
 
+---
+
+## Setting up client access to a Kafka cluster
+
+- [Configuring listeners to connect to Kafka](https://docs.redhat.com/en/documentation/red_hat_streams_for_apache_kafka/3.2/html-single/deploying_and_managing_streams_for_apache_kafka_on_openshift/index#configuration-points-listeners-str) 
+
+- [Accessing Apache Kafka in Strimzi](https://developers.redhat.com/blog/2019/06/06/accessing-apache-kafka-in-strimzi-part-1-introduction?p=601077)
+
+- Internal access
+  
+  ![](../images/03/03-8.png)
+
+- External access with NodePort
+
+  ![](../images/03/03-9.png)
+
+- External access with Loadbalancer
+  
+  ![](../images/03/03-11.png)
+
+- External access with OpenShift Route
+  
+  ![](../images/03/03-10.png)
+
+- External access with Ingress
+
+  ![](../images/03/03-12.png)
 ---
 
 ## Back to Table of Content

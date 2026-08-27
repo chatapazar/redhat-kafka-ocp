@@ -12,7 +12,8 @@ spec:
     type: jbod
     volumes:
       - id: 0
-        type: ephemeral
+        type: persistent-claim
+        size: 100Gi
         kraftMetadata: shared
 ---
 
@@ -30,7 +31,8 @@ spec:
     type: jbod
     volumes:
       - id: 0
-        type: ephemeral
+        type: persistent-claim
+        size: 100Gi
         kraftMetadata: shared
 ---
 

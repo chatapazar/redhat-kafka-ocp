@@ -14,12 +14,26 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: test-topic
+  name: kafkasql-journal
   labels:
     strimzi.io/cluster: my-cluster
 spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 7200000
-    segment.bytes: 1073741824
+    cleanup.policy: delete
+    retention.ms: -1
+    retention.bytes: -1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: app-events
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 6
+  replicas: 3
+  config:
+    retention.ms: 604800000
+    min.insync.replicas: 2    
