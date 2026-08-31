@@ -14,6 +14,7 @@
 - [Kafka Monitoring](docs/6-monitor.md)
 - [Mirror Maker 2](docs/7-mirrormaker2.md)
 - [Scaling, Rebalance, Cruise Control](docs/10-scale.md)
+- [Upgrade Red Hat Streams for Apache Kafka](docs/11-upgrade.md)
 
 ---
 
