@@ -25,5 +25,8 @@
 - [Kafka Bridge](https://docs.redhat.com/en/documentation/red_hat_streams_for_apache_kafka/3.2/html/using_the_streams_for_apache_kafka_http_bridge/index)
 - [Kafka and Schema Registry](https://streams-kafka-workshop.github.io/showroom/modules/m5/module-05.0.html)
 - [Red Hat Build of Apicurio Registry](https://docs.redhat.com/en/documentation/red_hat_build_of_apicurio_registry/3.3/)
+- [GitHub Kafka Workshop](https://github.com/streams-kafka-workshop)
+
+
 ---
 
